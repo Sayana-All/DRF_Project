@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Course(models.Model):
     """Класс для модели курса студентов"""
 
@@ -11,9 +12,7 @@ class Course(models.Model):
         verbose_name="Изображение",
         help_text="Загрузите изображение для превью",
     )
-    description = models.TextField(
-        blank=True, null=True, verbose_name="Описание", help_text="Введите описание курса"
-    )
+    description = models.TextField(blank=True, null=True, verbose_name="Описание", help_text="Введите описание курса")
 
     def __str__(self):
         return self.title
@@ -21,20 +20,17 @@ class Course(models.Model):
     class Meta:
         verbose_name = "курс"
         verbose_name_plural = "курсы"
-        ordering = [
-            "title",
-        ]
 
 
 class Lesson(models.Model):
     """Класс для модели урока"""
 
     title = models.CharField(max_length=150, verbose_name="Название", help_text="Укажите название урока")
-    description = models.TextField(
-        blank=True, null=True, verbose_name="Описание", help_text="Введите описание урока"
-    )
+    description = models.TextField(blank=True, null=True, verbose_name="Описание", help_text="Введите описание урока")
     course = models.ForeignKey(
         Course,
+        blank=True,
+        null=True,
         verbose_name="Курс",
         help_text="Укажите курс для урока",
         on_delete=models.CASCADE,
@@ -55,6 +51,3 @@ class Lesson(models.Model):
     class Meta:
         verbose_name = "урок"
         verbose_name_plural = "уроки"
-        ordering = [
-            "title",
-        ]
