@@ -15,9 +15,11 @@ class LessonSerializer(ModelSerializer):
 class CourseSerializer(ModelSerializer):
     """Сериализатор для модели курса"""
 
+    lessons_info = LessonSerializer(source="lessons", many=True)
     count_lessons = SerializerMethodField()
 
-    def get_count_lessons(self, instance):
+    @staticmethod
+    def get_count_lessons(instance):
         """Метод для подсчета количества уроков"""
 
         if instance.lessons:
@@ -26,7 +28,7 @@ class CourseSerializer(ModelSerializer):
 
     class Meta:
         model = Course
-        fields = "__all__"
+        fields = ["id", "title", "description", "preview", "count_lessons", "lessons_info"]
 
 
 
