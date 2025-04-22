@@ -4,7 +4,7 @@ from django.db import models
 from materials.models import Lesson, Course
 
 
-class User(AbstractUser):
+class CustomUser(AbstractUser):
     """Модель для профиля пользователя"""
 
     username = None
@@ -45,7 +45,7 @@ class Payment(models.Model):
     ]
 
     user = models.ForeignKey(
-        User,
+        CustomUser,
         verbose_name="Пользователь",
         help_text="Укажите отправителя платежа",
         on_delete=models.CASCADE,
@@ -77,7 +77,7 @@ class Payment(models.Model):
     )
 
     def __str__(self):
-        return f"{self.user} - {self.payment_date} - {self.paying_lesson if self.paying_lesson else self.paying_course} - {self.payment_method} {self.payment_method}"
+        return f"{self.user} - {self.payment_date} - {self.paying_lesson if self.paying_lesson else self.paying_course} - {self.payment_method}: {self.amount}"
 
     class Meta:
         verbose_name = "Платеж"
