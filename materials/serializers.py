@@ -29,17 +29,3 @@ class CourseSerializer(ModelSerializer):
     class Meta:
         model = Course
         fields = ["id", "title", "description", "preview", "count_lessons", "lessons_info"]
-
-
-
-
-#class CourseDetailSerializer(ModelSerializer):
-#    """Сериализатор для отображения количества уроков в курсе"""
-#
-#
-#    class Meta:
-#        model = Course
-#        fields = ["title", "count_lessons"]
-
-
-
