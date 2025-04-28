@@ -1,6 +1,7 @@
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.viewsets import ModelViewSet
 
+from users.permissions import IsModer
 from .models import Course, Lesson
 from .serializers import CourseSerializer, LessonSerializer
 
@@ -15,6 +16,14 @@ class CourseViewSet(ModelViewSet):
         """Метод для автоматического назначения создателя курса его владельцем"""
         course = serializer.save(owner=self.request.user)
         course.save()
+
+    def get_permissions(self):
+        """Метод для проверки прав пользователя"""
+        if self.action in ["create", "destroy"]:
+            self.permission_classes = (~IsModer,)
+        elif self.action in ["retrieve", "update"]:
+            self.permission_classes = (IsModer,)
+        return super().get_permissions()
 
 
 class LessonCreateAPIView(CreateAPIView):
