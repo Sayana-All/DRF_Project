@@ -1,7 +1,9 @@
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from users.permissions import IsModer
+from users.permissions import IsModer, IsOwner
+
 from .models import Course, Lesson
 from .serializers import CourseSerializer, LessonSerializer
 
@@ -19,10 +21,12 @@ class CourseViewSet(ModelViewSet):
 
     def get_permissions(self):
         """Метод для проверки прав пользователя"""
-        if self.action in ["create", "destroy"]:
+        if self.action == "create":
             self.permission_classes = (~IsModer,)
-        elif self.action in ["retrieve", "update"]:
-            self.permission_classes = (IsModer,)
+        elif self.action in ["list", "retrieve", "update"]:
+            self.permission_classes = (IsModer | IsOwner,)
+        elif self.action == "destroy":
+            self.permission_classes = (IsOwner | ~IsModer,)
         return super().get_permissions()
 
 
@@ -31,6 +35,7 @@ class LessonCreateAPIView(CreateAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = (IsAuthenticated, ~IsModer)
 
     def perform_create(self, serializer):
         """Метод для автоматического назначения создателя урока его владельцем"""
@@ -51,6 +56,7 @@ class LessonRetrieveAPIView(RetrieveAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = (IsAuthenticated, IsModer | IsOwner)
 
 
 class LessonUpdateAPIView(UpdateAPIView):
@@ -58,6 +64,7 @@ class LessonUpdateAPIView(UpdateAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = (IsAuthenticated, IsModer | IsOwner)
 
 
 class LessonDestroyAPIView(DestroyAPIView):
@@ -65,3 +72,4 @@ class LessonDestroyAPIView(DestroyAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = (IsAuthenticated, ~IsModer | IsOwner)

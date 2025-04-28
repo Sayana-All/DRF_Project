@@ -1,18 +1,10 @@
-from itertools import permutations
-
 from django.urls import path
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from users.apps import UsersConfig
-from users.views import (
-    PaymentCreateAPIView,
-    PaymentDestroyAPIView,
-    PaymentListAPIView,
-    PaymentRetrieveAPIView,
-    PaymentUpdateAPIView,
-    CustomUserCreateAPIView,
-)
+from users.views import (CustomUserCreateAPIView, PaymentCreateAPIView, PaymentDestroyAPIView, PaymentListAPIView,
+                         PaymentRetrieveAPIView, PaymentUpdateAPIView)
 
 app_name = UsersConfig.name
 
