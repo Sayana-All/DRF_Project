@@ -1,10 +1,20 @@
 from django.db import models
 
+from config import settings
+
 
 class Course(models.Model):
     """Класс для модели курса студентов"""
 
     title = models.CharField(max_length=100, verbose_name="Название", help_text="Укажите название курса")
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Владелец",
+        related_name="courses_own",
+    )
     preview = models.ImageField(
         upload_to="course/preview/",
         blank=True,
@@ -35,6 +45,14 @@ class Lesson(models.Model):
         help_text="Укажите курс для урока",
         on_delete=models.CASCADE,
         related_name="lessons",
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Владелец",
+        related_name="lessons_own",
     )
     preview = models.ImageField(
         upload_to="lesson/preview/",

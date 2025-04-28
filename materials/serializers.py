@@ -15,7 +15,7 @@ class LessonSerializer(ModelSerializer):
 class CourseSerializer(ModelSerializer):
     """Сериализатор для модели курса"""
 
-    lessons_info = LessonSerializer(source="lessons", many=True)
+    lessons_info = LessonSerializer(source="lessons", many=True, read_only=True)
     count_lessons = SerializerMethodField()
 
     @staticmethod
@@ -28,4 +28,4 @@ class CourseSerializer(ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ["id", "title", "description", "preview", "count_lessons", "lessons_info"]
+        fields = ["id", "title", "description", "owner", "preview", "count_lessons", "lessons_info"]
