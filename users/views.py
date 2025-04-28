@@ -1,9 +1,24 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.permissions import AllowAny
 
-from users.models import Payment
-from users.serializers import PaymentSerializer
+from users.models import Payment, CustomUser
+from users.serializers import PaymentSerializer, CustomUserSerializer
+
+
+class CustomUserCreateAPIView(CreateAPIView):
+    """Контроллер для регистрации пользователя"""
+
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = (AllowAny,)
+
+    def perform_create(self, serializer):
+        """Метод для переопределения регистрации по email"""
+        user = serializer.save(is_active=True)
+        user.set_password(user.password)
+        user.save()
 
 
 class PaymentListAPIView(ListAPIView):
