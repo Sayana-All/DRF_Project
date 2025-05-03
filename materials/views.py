@@ -1,10 +1,14 @@
-from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, \
+    get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from users.permissions import IsModer, IsOwner
 
-from .models import Course, Lesson
+from .models import Course, Lesson, SubscribeUpdateCourse
 from .serializers import CourseSerializer, LessonSerializer
 
 
@@ -28,6 +32,33 @@ class CourseViewSet(ModelViewSet):
         elif self.action == "destroy":
             self.permission_classes = (IsOwner | ~IsModer,)
         return super().get_permissions()
+
+    def get_serializer_context(self):
+        """Метод для добавления текущего пользователя в контекст"""
+        context = super().get_serializer_context()
+        context["request_user"] = self.request.user
+        return context
+
+
+class SubscribeToggleAPIView(APIView):
+    """Контроллер для подписки/отписки пользователя от курса"""
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        course = get_object_or_404(Course, id=course_id)
+        subs_item = SubscribeUpdateCourse.objects.filter(user=user, course=course)
+
+        if subs_item.exists():
+            subs_item.delete()
+            message = f"Подписка на курс {course} удалена"
+        else:
+            SubscribeUpdateCourse.objects.create(user=user, course=course, is_subscribe=True)
+            message = f"Подписка на курс {course} добавлена"
+
+        return Response({"message": message}, status=status.HTTP_200_OK)
 
 
 class LessonCreateAPIView(CreateAPIView):

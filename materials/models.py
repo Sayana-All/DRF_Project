@@ -69,3 +69,25 @@ class Lesson(models.Model):
     class Meta:
         verbose_name = "урок"
         verbose_name_plural = "уроки"
+
+
+class SubscribeUpdateCourse(models.Model):
+    """Класс для модели подписки на обновление курса"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+        help_text="Укажите пользователя подписки",
+        related_name="user_subscriptions",
+    )
+    course = models.ForeignKey(
+        Course,
+        verbose_name="Курс",
+        help_text="Укажите курс, на который подписываетесь",
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+    )
+    is_subscribe = models.BooleanField(default=False, verbose_name="Статус подписки", help_text="Выберите статус подписки")
+
+    def __str__(self):
+        return f"{self.user.email} подписан на {self.course.title}"
