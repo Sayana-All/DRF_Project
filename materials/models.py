@@ -73,6 +73,7 @@ class Lesson(models.Model):
 
 class SubscribeUpdateCourse(models.Model):
     """Класс для модели подписки на обновление курса"""
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -87,7 +88,9 @@ class SubscribeUpdateCourse(models.Model):
         on_delete=models.CASCADE,
         related_name="subscriptions",
     )
-    is_subscribe = models.BooleanField(default=False, verbose_name="Статус подписки", help_text="Выберите статус подписки")
+    is_subscribe = models.BooleanField(
+        default=False, verbose_name="Статус подписки", help_text="Выберите статус подписки"
+    )
 
     def __str__(self):
         return f"{self.user.email} подписан на {self.course.title}"

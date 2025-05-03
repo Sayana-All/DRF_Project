@@ -10,4 +10,6 @@ class VideoUrlValidator:
     def __call__(self, value):
         tmp_value = dict(value).get(self.field)
         if tmp_value and "youtube.com" not in tmp_value:
-            raise ValidationError(f"{tmp_value} является недопустимой ссылкой на видеоурок. Используйте контент с Youtube.")
+            raise ValidationError(
+                f"{tmp_value} является недопустимой ссылкой на видеоурок. Используйте контент с Youtube."
+            )

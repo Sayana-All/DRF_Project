@@ -27,9 +27,7 @@ class CourseTestCase(APITestCase):
     def test_course_create(self):
         """Тест на создание курса"""
         url = reverse("materials:course-list")
-        data = {
-            "title": "Новый курс"
-        }
+        data = {"title": "Новый курс"}
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -59,21 +57,21 @@ class CourseTestCase(APITestCase):
         response = self.client.get(url)
         data = response.json()
         result = {
-            'count': 1,
-            'next': None,
-            'previous': None,
-            'results': [
+            "count": 1,
+            "next": None,
+            "previous": None,
+            "results": [
                 {
-                    'id': self.course.pk,
-                    'title': self.course.title,
-                    'description': None,
-                    'owner': self.user.pk,
-                    'subscribe': False,
-                    'preview': None,
-                    'count_lessons': 0,
-                    'lessons_info': []
+                    "id": self.course.pk,
+                    "title": self.course.title,
+                    "description": None,
+                    "owner": self.user.pk,
+                    "subscribe": False,
+                    "preview": None,
+                    "count_lessons": 0,
+                    "lessons_info": [],
                 }
-            ]
+            ],
         }
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -87,7 +85,9 @@ class LessonTestCase(APITestCase):
         """Метод для получения тестовых данных"""
         self.user = CustomUser.objects.create(email="test@admin.com")
         self.course = Course.objects.create(title="Тестовый курс", owner=self.user)
-        self.lesson = Lesson.objects.create(title="Тестовый урок", description="Пробное описание", course=self.course, owner=self.user)
+        self.lesson = Lesson.objects.create(
+            title="Тестовый урок", description="Пробное описание", course=self.course, owner=self.user
+        )
         self.client.force_authenticate(user=self.user)
 
     def test_lesson_retrieve(self):
@@ -103,9 +103,7 @@ class LessonTestCase(APITestCase):
     def test_lesson_create(self):
         """Тест на создание урока"""
         url = reverse("materials:create")
-        data = {
-            "title": "Новый урок"
-        }
+        data = {"title": "Новый урок"}
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -135,24 +133,23 @@ class LessonTestCase(APITestCase):
         response = self.client.get(url)
         data = response.json()
         result = {
-            'count': 1,
-            'next': None,
-            'previous': None,
-            'results': [
+            "count": 1,
+            "next": None,
+            "previous": None,
+            "results": [
                 {
-                    'id': self.lesson.pk,
-                    'title': self.lesson.title,
-                    'description': self.lesson.description,
-                    'preview': None,
-                    'video_url': None,
-                    'course': self.course.pk,
-                    'owner': self.user.pk,
+                    "id": self.lesson.pk,
+                    "title": self.lesson.title,
+                    "description": self.lesson.description,
+                    "preview": None,
+                    "video_url": None,
+                    "course": self.course.pk,
+                    "owner": self.user.pk,
                 }
-            ]
+            ],
         }
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(data, result)
-
 
 
 class SubscribeTestCase(APITestCase):
