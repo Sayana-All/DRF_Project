@@ -9,6 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from users.permissions import IsModer, IsOwner
 
 from .models import Course, Lesson, SubscribeUpdateCourse
+from .paginations import CustomPagination
 from .serializers import CourseSerializer, LessonSerializer
 
 
@@ -17,6 +18,7 @@ class CourseViewSet(ModelViewSet):
 
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         """Метод для автоматического назначения создателя курса его владельцем"""
@@ -80,6 +82,7 @@ class LessonListAPIView(ListAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    pagination_class = CustomPagination
 
 
 class LessonRetrieveAPIView(RetrieveAPIView):
