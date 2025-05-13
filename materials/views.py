@@ -1,8 +1,14 @@
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import (CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView,
-                                     get_object_or_404)
+from rest_framework.generics import (
+    CreateAPIView,
+    DestroyAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+    UpdateAPIView,
+    get_object_or_404,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,9 +21,10 @@ from .paginations import CustomPagination
 from .serializers import CourseSerializer, LessonSerializer
 
 
-@method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_description="description from swagger_auto_schema via method_decorator"
-))
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(operation_description="description from swagger_auto_schema via method_decorator"),
+)
 class CourseViewSet(ModelViewSet):
     """Общий контроллер для модели курса"""
 

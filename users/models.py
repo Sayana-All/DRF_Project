@@ -92,7 +92,6 @@ class Payment(models.Model):
         help_text="Укажите ссылку на оплату",
     )
 
-
     def __str__(self):
         return f"{self.user} - {self.payment_date} - {self.paying_lesson if self.paying_lesson else self.paying_course} - {self.payment_method}: {self.amount}"
 

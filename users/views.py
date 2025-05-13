@@ -48,7 +48,7 @@ class PaymentCreateAPIView(CreateAPIView):
     serializer_class = PaymentSerializer
 
     def perform_create(self, serializer):
-        """Метод для проверки авторизованных пользователей"""
+        """Метод для исполнения оплаты через сервис платежей Stripe"""
 
         user = self.request.user
         user.save()
