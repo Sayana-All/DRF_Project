@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from config import settings
 from materials.models import Course, Lesson
 
 
@@ -45,7 +46,7 @@ class Payment(models.Model):
     ]
 
     user = models.ForeignKey(
-        CustomUser,
+        settings.AUTH_USER_MODEL,
         verbose_name="Пользователь",
         help_text="Укажите отправителя платежа",
         on_delete=models.CASCADE,
@@ -74,6 +75,21 @@ class Payment(models.Model):
     amount = models.PositiveIntegerField(verbose_name="Сумма платежа", help_text="Укажите сумму платежа")
     payment_method = models.CharField(
         max_length=8, choices=PAYMENT_METHOD_CHOICES, verbose_name="Способ оплаты", help_text="Выберите способ оплаты"
+    )
+
+    session_id = models.CharField(
+        max_length=255,
+        verbose_name="Id сессии",
+        blank=True,
+        null=True,
+        help_text="Укажите Id сессии",
+    )
+    link = models.URLField(
+        max_length=400,
+        verbose_name="Ссылка на оплату",
+        blank=True,
+        null=True,
+        help_text="Укажите ссылку на оплату",
     )
 
     def __str__(self):
