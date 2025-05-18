@@ -8,4 +8,4 @@ class CustomUserAdmin(admin.ModelAdmin):
     """Класс пользователей для админки"""
 
     list_filter = ("id", "email")
-    list_display = ("id", "email")
+    list_display = ("id", "email", "is_active")
