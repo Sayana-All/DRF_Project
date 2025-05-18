@@ -19,7 +19,7 @@ from users.permissions import IsModer, IsOwner
 from .models import Course, Lesson, SubscribeUpdateCourse
 from .paginations import CustomPagination
 from .serializers import CourseSerializer, LessonSerializer
-from .tasks import add_pr
+from .tasks import send_course_update_email
 
 
 @method_decorator(
@@ -37,6 +37,11 @@ class CourseViewSet(ModelViewSet):
         """Метод для автоматического назначения создателя курса его владельцем"""
         course = serializer.save(owner=self.request.user)
         course.save()
+
+    def perform_update(self, serializer):
+        """Метод для проверки обновления курса и отправки уведомления на почту пользователям подписки"""
+        course = serializer.save()
+        send_course_update_email.delay(course.id, course.title)
 
     def get_permissions(self):
         """Метод для проверки прав пользователя"""
@@ -69,11 +74,9 @@ class SubscribeToggleAPIView(APIView):
 
         if subs_item.exists():
             subs_item.delete()
-            add_pr.delay()
             message = f"Подписка на курс {course} удалена"
         else:
             SubscribeUpdateCourse.objects.create(user=user, course=course, is_subscribe=True)
-            add_pr.delay()
             message = f"Подписка на курс {course} добавлена"
 
         return Response({"message": message}, status=status.HTTP_200_OK)
