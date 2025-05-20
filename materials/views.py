@@ -38,14 +38,9 @@ class CourseViewSet(ModelViewSet):
     def perform_update(self, serializer):
         """Метод для проверки обновления курса и отправки уведомления на почту пользователям подписки"""
         course = serializer.save()
-        user = self.request.user
 
-        four_hours_ago = timezone.now() - timedelta(hours=4)
-        if course.updated_at < four_hours_ago:
-            subscribers = SubscribeUpdateCourse.objects.filter(course=course, is_subscribe=True).select_related("user")
-
-            for sub in subscribers:
-                send_course_update_email.delay(user_email=sub.user.email, course_title=course.title)
+        if course.updated_at and timezone.now() - course.updated_at > timedelta(hours=4):
+            send_course_update_email.delay(course.id)
 
     def get_permissions(self):
         """Метод для проверки прав пользователя"""
