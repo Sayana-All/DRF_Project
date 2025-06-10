@@ -23,6 +23,9 @@ class Course(models.Model):
         help_text="Загрузите изображение для превью",
     )
     description = models.TextField(blank=True, null=True, verbose_name="Описание", help_text="Введите описание курса")
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Дата обновления", help_text="Укажите дату обновления курса"
+    )
 
     def __str__(self):
         return self.title

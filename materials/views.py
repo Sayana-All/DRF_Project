@@ -1,14 +1,11 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import (
-    CreateAPIView,
-    DestroyAPIView,
-    ListAPIView,
-    RetrieveAPIView,
-    UpdateAPIView,
-    get_object_or_404,
-)
+from rest_framework.generics import (CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView,
+                                     get_object_or_404)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +16,7 @@ from users.permissions import IsModer, IsOwner
 from .models import Course, Lesson, SubscribeUpdateCourse
 from .paginations import CustomPagination
 from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_course_update_email
 
 
 @method_decorator(
@@ -36,6 +34,13 @@ class CourseViewSet(ModelViewSet):
         """Метод для автоматического назначения создателя курса его владельцем"""
         course = serializer.save(owner=self.request.user)
         course.save()
+
+    def perform_update(self, serializer):
+        """Метод для проверки обновления курса и отправки уведомления на почту пользователям подписки"""
+        course = serializer.save()
+
+        if course.updated_at and timezone.now() - course.updated_at > timedelta(hours=4):
+            send_course_update_email.delay(course.id)
 
     def get_permissions(self):
         """Метод для проверки прав пользователя"""
