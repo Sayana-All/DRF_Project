@@ -1,6 +1,6 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
-WORKDIR /app
+WORKDIR /code
 
 RUN pip install --upgrade pip \
     && pip install poetry
@@ -12,7 +12,7 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
-RUN mkdir -p /app/media /app/static
+RUN mkdir -p /code/media
 
 EXPOSE 8000
 
