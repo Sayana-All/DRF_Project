@@ -5,10 +5,10 @@ WORKDIR /code
 RUN pip install --upgrade pip \
     && pip install poetry
 
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
-RUN poetry config virtualenvs.create false \
-    && poetry install
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-root
 
 COPY . .
 
