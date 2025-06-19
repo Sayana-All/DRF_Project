@@ -116,6 +116,7 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Настройки медиа
 MEDIA_URL = "/media/"
@@ -137,6 +138,7 @@ STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
 # Настройки Celery
 # URL-адрес брокера сообщений
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+
 # URL-адрес брокера результатов, также Redis
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 CELERY_TIMEZONE = TIME_ZONE

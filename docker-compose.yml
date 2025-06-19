@@ -3,10 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bash -c "poetry run python manage.py migrate && poetry run python manage.py csu && poetry run python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "poetry run python manage.py collectstatic --noinput && poetry run python manage.py migrate && poetry run python manage.py csu && poetry run python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
-      - static-volume:/code/static
+      - static-volume:/code/staticfiles
     ports:
       - "8000:8000"
     env_file:
@@ -16,6 +16,17 @@ services:
     depends_on:
       - db
       - redis
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/ect/nginx/ngin.conf
+      - static-volume:/code/staticfiles
+    depends_on:
+      - web
 
   db:
     image: postgres:16.0
