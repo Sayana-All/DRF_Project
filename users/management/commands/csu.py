@@ -13,11 +13,11 @@ class Command(BaseCommand):
                 "is_active": True,
                 "is_staff": True,
                 "is_superuser": True,
-            }
+            },
         )
         user.set_password("qwerty25")
         user.save()
         if created:
-            self.stdout.write(self.style.SUCCESS(f'Суперпользователь {user.email} создан'))
+            self.stdout.write(self.style.SUCCESS(f"Суперпользователь {user.email} создан"))
         else:
-            self.stdout.write(self.style.WARNING(f'Суперпользователь {user.email} уже существует'))
+            self.stdout.write(self.style.WARNING(f"Суперпользователь {user.email} уже существует"))
