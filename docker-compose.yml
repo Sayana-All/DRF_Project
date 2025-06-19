@@ -3,7 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bash -c "poetry run python manage.py collectstatic --noinput && poetry run python manage.py migrate && poetry run python manage.py csu && poetry run python manage.py runserver 0.0.0.0:8000"
+    command: >
+      bash -c "while ! nc -z db 5432; do sleep 1; done
+      && poetry run python manage.py collectstatic --noinput \
+      && poetry run python manage.py migrate \
+      && poetry run python manage.py csu || true\
+      && poetry run gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
       - static-volume:/code/staticfiles
@@ -13,6 +18,11 @@ services:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/healthcheck/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - db
       - redis

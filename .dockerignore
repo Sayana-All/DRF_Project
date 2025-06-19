@@ -5,7 +5,7 @@ __pycache__
 *.pyd
 *.sqlite3
 *.log
-
+*.env
 *.DS_Store
 .idea
 media/
