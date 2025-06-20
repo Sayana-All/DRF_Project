@@ -24,7 +24,7 @@ jobs:
           poetry add flake8
 
       - name: Run Flake8
-        run: flake8 .
+        run: poetry run flake8 .
 
 
   test:
