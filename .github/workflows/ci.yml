@@ -3,9 +3,8 @@ name: Django CI/CD
 on: [push, pull_request]
 
 env:
-  DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-tests' }}
-  DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-  PYTHON_VERSION: '3.11'
+  DJANGO_SETTINGS_MODULE: "config.settings"
+  PYTHONPATH: "${{ github.workspace }}"
 
 jobs:
   lint:
@@ -56,7 +55,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: '3.11'
 
       - name: Install virtualenvs
         uses: snok/install-poetry@v1

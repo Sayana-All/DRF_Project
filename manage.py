@@ -2,11 +2,27 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
+
+def configure_test_environment():
+    """Настройка тестового окружения"""
+    os.environ.setdefault("DJANGO_SECRET_KEY", "dummy_test_key_12345")
+    os.environ.setdefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/test_db")
+
+    # Добавляем корень проекта в PYTHONPATH
+    project_root = Path(__file__).parent.resolve()
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
 
 
 def main():
     """Run administrative tasks."""
+    if "test" in sys.argv:
+        configure_test_environment()
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
