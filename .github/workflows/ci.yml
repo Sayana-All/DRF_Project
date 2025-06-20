@@ -65,7 +65,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install poetry
-        run: poetry install --no-interaction
+        run: poetry install --no-root --no-interaction
 
       - name: Run migrations and test
         run: |
