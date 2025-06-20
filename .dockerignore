@@ -1,3 +1,5 @@
+.git
+.gitignore
 .venv
 __pycache__
 *.pyc
@@ -8,6 +10,5 @@ __pycache__
 *.env
 *.DS_Store
 .idea
-media/
-static/
 node_modules/
+docker-compose.override.yml
