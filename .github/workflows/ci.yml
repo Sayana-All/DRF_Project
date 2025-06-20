@@ -2,34 +2,47 @@ name: Django CI/CD
 
 on: [push, pull_request]
 
+env:
+  DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-tests' }}
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+  PYTHON_VERSION: '3.12'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "export PATH=\"$HOME/.local/bin:$PATH\"" >> $GITHUB_ENV
+      - uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-      - name: Install Flake8
-        run: |
-          poetry add flake8
+      - run: poetry install --no-interaction
 
-      - name: Run Flake8
-        run: poetry run flake8 .
-
+      - run: poetry run flake8 .
 
   test:
     needs: lint
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out code
@@ -38,22 +51,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
+      - name: Install virtualenvs
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install poetry
+        run: poetry install --no-interaction
+
+      - name: Run migrations and test
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "export PATH=\"$HOME/.local/bin:$PATH\"" >> $GITHUB_ENV
-
-      - name: Install dependencies
-        run: poetry install --no-root
-
-      - name: Run migrations
-        run: poetry run python manage.py migrate
-
-      - name: Run tests
-        run: poetry run python manage.py test
-
+          poetry run python manage.py check
+          poetry run python manage.py migrate
+          poetry run python manage.py test
 
   build:
     needs: test
