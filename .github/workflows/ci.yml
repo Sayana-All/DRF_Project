@@ -103,20 +103,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install sshpass
+      - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Set up SSH
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          echo "${{ secrets.SERVER_IP }} $(curl -s https://api.github.com/meta | jq -r '.ssh_keys[]')" >> ~/.ssh/known_hosts
+
+          # Полная очистка known_hosts и добавление нового ключа
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} > ~/.ssh/known_hosts
+          cat ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" \
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -v -o StrictHostKeyChecking=accept-new \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
           docker stop myapp || true
           docker rm myapp || true
