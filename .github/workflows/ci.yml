@@ -3,8 +3,10 @@ name: Django CI/CD
 on: [push, pull_request]
 
 env:
-  DJANGO_SETTINGS_MODULE: "config.settings"
-  PYTHONPATH: "${{ github.workspace }}"
+  DJANGO_SETTINGS_MODULE: config.settings
+  DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy_test_key_12345' }}
+  CELERY_BROKER_URL: redis://redis:6379/0
+  CELERY_RESULT_BACKEND: redis://redis:6379/0
 
 jobs:
   lint:
