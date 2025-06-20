@@ -103,19 +103,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test SSH connection
-        run: ssh -T ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} echo "SSH connection successful"
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Add SSH key
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          echo "${{ secrets.SERVER_IP }} $(curl -s https://api.github.com/meta | jq -r '.ssh_keys[]')" >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \
-            "docker-compose up -d"
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          docker stop myapp || true
+          docker rm myapp || true
+          docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          EOF
