@@ -101,6 +101,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Setup SSH
@@ -109,18 +110,19 @@ jobs:
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
-          # Полная очистка known_hosts и добавление нового ключа
           ssh-keyscan -H ${{ secrets.SERVER_IP }} > ~/.ssh/known_hosts
-          cat ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" \
-          ssh -v -o StrictHostKeyChecking=accept-new \
+          ssh -T -o StrictHostKeyChecking=accept-new \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=3 \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          set -e
           docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
           docker stop myapp || true
           docker rm myapp || true
           docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          echo "Deployment completed successfully"
           EOF
