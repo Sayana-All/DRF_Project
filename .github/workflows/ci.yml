@@ -104,17 +104,25 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} > ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" \
-          ssh -T -o StrictHostKeyChecking=accept-new \
+          ssh -i ~/.ssh/id_ed25519 \
+              -o StrictHostKeyChecking=accept-new \
               -o ServerAliveInterval=15 \
               -o ServerAliveCountMax=3 \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          set -e
+          set -e  # Прерывать при ошибках
           docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
           docker stop myapp || true
           docker rm myapp || true
