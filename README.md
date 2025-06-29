@@ -163,6 +163,8 @@ sudo usermod -aG docker $USER
     * **SERVER_IP** — IP сервера.
     * **ENV_FILE_CONTENTS** — содержимое .env-файла (скопируй из локального .env).
     * **DJANGO_SECRET_KEY** - секретный ключ Django
+    * **DOCKER_HUB_USERNAME** - ваш логин в Docker Hub
+    * **DOCKER_HUB_ACCESS_TOKEN** - токен для пользовательского доступа для работы с Docker
 
 
 ## Документация

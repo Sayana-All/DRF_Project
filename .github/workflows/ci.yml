@@ -109,6 +109,14 @@ jobs:
           docker-compose --version
 
       - name: Build Docker images
+        env:
+          DATABASE_NAME: test_db
+          DATABASE_USER: postgres
+          DATABASE_PASSWORD: postgres
+          DATABASE_HOST: db
+          DATABASE_PORT: 5432
+          CELERY_BROKER_URL: redis://redis:6379/0
+          CELERY_RESULT_BACKEND: redis://redis:6379/0
         run: |
           docker-compose -f docker-compose.yml build
 
