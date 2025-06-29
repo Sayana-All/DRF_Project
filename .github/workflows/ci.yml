@@ -8,6 +8,7 @@ on:
 env:
   DJANGO_SETTINGS_MODULE: config.settings
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy_test_key_12345' }}
+  GITHUB_ACTIONS: "true"
   DATABASE_HOST: localhost
   CELERY_BROKER_URL: redis://localhost:6379/0
   CELERY_RESULT_BACKEND: redis://localhost:6379/0
