@@ -8,9 +8,9 @@ on:
 env:
   DJANGO_SETTINGS_MODULE: config.settings
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy_test_key_12345' }}
-  DATABASE_HOST: db
-  CELERY_BROKER_URL: redis://redis:6379/0
-  CELERY_RESULT_BACKEND: redis://redis:6379/0
+  DATABASE_HOST: localhost
+  CELERY_BROKER_URL: redis://localhost:6379/0
+  CELERY_RESULT_BACKEND: redis://localhost:6379/0
 
 jobs:
   lint:
@@ -71,6 +71,9 @@ jobs:
 
       - name: Install poetry
         run: poetry install --no-root --no-interaction
+
+      - name: Init static dir
+        run: mkdir -p static
 
       - name: Run migrations and test
         run: |
