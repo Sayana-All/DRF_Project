@@ -1,19 +1,20 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 WORKDIR /code
 
-RUN pip install --upgrade pip \
-    && pip install poetry
+RUN apt-get update && apt-get install -y \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml ./
+RUN pip install --upgrade pip && pip install poetry
 
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-root
+COPY pyproject.toml poetry.lock* ./
+
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-root --only main
 
 COPY . .
 
-RUN mkdir -p /code/media
+RUN mkdir -p /code/media /code/staticfiles
 
 EXPOSE 8000
-
-CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]

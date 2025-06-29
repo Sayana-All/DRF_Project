@@ -10,7 +10,7 @@ def send_course_update_email(course_id):
     """Задача для отправки письма подписчикам об обновлении курса"""
 
     course = Course.objects.get(id=course_id)
-    subscribers = SubscribeUpdateCourse.objects.select_related('user').filter(course=course, is_subscribe=True)
+    subscribers = SubscribeUpdateCourse.objects.select_related("user").filter(course=course, is_subscribe=True)
 
     for subscription in subscribers:
         user = subscription.user

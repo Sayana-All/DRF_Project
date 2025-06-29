@@ -3,10 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bash -c "poetry run python manage.py migrate && poetry run python manage.py csu && poetry run python manage.py runserver 0.0.0.0:8000"
+    command: >
+      bash -c "while ! nc -z db 5432; do sleep 1; done
+      && poetry run python manage.py collectstatic --noinput \
+      && poetry run python manage.py migrate \
+      && poetry run python manage.py csu || true\
+      && poetry run gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
-      - static-volume:/code/static
+      - static-volume:/code/staticfiles
     ports:
       - "8000:8000"
     env_file:
@@ -14,8 +19,27 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/ect/nginx/nginx.conf
+      - static-volume:/code/staticfiles
+    depends_on:
+      web:
+        condition: service_healthy
 
   db:
     image: postgres:16.0
@@ -30,7 +54,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 5
 
   redis:
@@ -62,7 +86,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: poetry run celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: poetry run celery -A config beat -l info
     volumes:
       - .:/code
     env_file:

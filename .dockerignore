@@ -1,3 +1,4 @@
+.git
 .venv
 __pycache__
 *.pyc
@@ -5,9 +6,8 @@ __pycache__
 *.pyd
 *.sqlite3
 *.log
-
+*.env
 *.DS_Store
 .idea
-media/
-static/
 node_modules/
+docker-compose.override.yml
