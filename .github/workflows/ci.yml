@@ -108,9 +108,9 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      - name: Create .env file from example
+      - name: Create .env file from sample
         run: |
-          cp .env.example .env
+          cp .env.sample .env
           echo "DATABASE_NAME=test_db" >> .env
           echo "DATABASE_USER=postgres" >> .env
           echo "DATABASE_PASSWORD=postgres" >> .env
