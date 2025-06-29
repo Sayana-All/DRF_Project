@@ -108,17 +108,15 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      - name: Create temporary .env file
+      - name: Create .env file from example
         run: |
-          cat << EOF > .env
-          DATABASE_NAME=test_db
-          DATABASE_USER=postgres
-          DATABASE_PASSWORD=postgres
-          DATABASE_HOST=db
-          DATABASE_PORT=5432
-          CELERY_BROKER_URL=redis://redis:6379/0
-          CELERY_RESULT_BACKEND=redis://redis:6379/0
-          EOF
+          cp .env.example .env
+          echo "DATABASE_NAME=test_db" >> .env
+          echo "DATABASE_USER=postgres" >> .env
+          echo "DATABASE_PASSWORD=postgres" >> .env
+          echo "DATABASE_HOST=db" >> .env
+          echo "CELERY_BROKER_URL=redis://redis:6379/0" >> .env
+          echo "CELERY_RESULT_BACKEND=redis://redis:6379/0" >> .env
 
       - name: Build Docker images
         run: |
