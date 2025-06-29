@@ -120,4 +120,4 @@ docker system prune -a`
 - [документация и сервис оплаты Stripe](Homework_32.2.md)
 - [работа с Celery и celery-beat](Homework_33.md)
 - [Контейнеры Dockerfile и Docker Compose](Homework_34.2.md)
-- [Nginx и workflow для GitHub Actions](Homework_34.2.md)
+- [Nginx и workflow для GitHub Actions](Homework_35.md)
