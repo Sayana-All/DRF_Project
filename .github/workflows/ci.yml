@@ -128,6 +128,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Verify files
+        run: |
+          ls -la  # Покажет список файлов для отладки
+          [ -f docker-compose.yml ] || exit 1  # Явная проверка файла
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -136,18 +141,10 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_IP }} 2>/dev/null > ~/.ssh/known_hosts
 
-      - name: Create deployment directory
-        run: mkdir -p deploy
-
-      - name: Prepare deployment files
-        run: |
-          cp docker-compose.yml deploy/
-          cp -r nginx deploy/
-
       - name: Deploy to server
         run: |
           scp -o StrictHostKeyChecking=no \
-              -r deploy/* \
+              docker-compose.yml \
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/drf-project/
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
