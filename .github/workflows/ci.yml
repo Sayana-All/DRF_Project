@@ -1,12 +1,17 @@
 name: Django CI/CD
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
 
 env:
   DJANGO_SETTINGS_MODULE: config.settings
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy_test_key_12345' }}
-  CELERY_BROKER_URL: redis://redis:6379/0
-  CELERY_RESULT_BACKEND: redis://redis:6379/0
+  GITHUB_ACTIONS: "true"
+  DATABASE_HOST: localhost
+  CELERY_BROKER_URL: redis://localhost:6379/0
+  CELERY_RESULT_BACKEND: redis://localhost:6379/0
 
 jobs:
   lint:
@@ -68,6 +73,9 @@ jobs:
       - name: Install poetry
         run: poetry install --no-root --no-interaction
 
+      - name: Init static dir
+        run: mkdir -p static
+
       - name: Run migrations and test
         run: |
           poetry run python manage.py check
@@ -82,21 +90,37 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Set up Docker
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
-            ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
+      - name: Create .env file from sample
+        run: |
+          cp .env.sample .env
+          echo "DATABASE_NAME=test_db" >> .env
+          echo "DATABASE_USER=postgres" >> .env
+          echo "DATABASE_PASSWORD=postgres" >> .env
+          echo "DATABASE_HOST=db" >> .env
+          echo "CELERY_BROKER_URL=redis://redis:6379/0" >> .env
+          echo "CELERY_RESULT_BACKEND=redis://redis:6379/0" >> .env
+
+      - name: Build Docker images
+        run: |
+          docker-compose -f docker-compose.yml build
 
   deploy:
     needs: build
@@ -104,23 +128,61 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} 2>/dev/null > ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Server
+      - name: Prepare remote directory
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+           -o StrictHostKeyChecking=no \
+           ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sudo mkdir -p /drf-project
+          sudo chown -R $USER:$USER /drf-project
+          mkdir -p /drf-project/nginx
+          EOF
+
+      - name: Upload only necessary files
+        run: |
+          tar -czf deploy.tar.gz \
+              docker-compose.yml \
+              nginx/ \
+              Dockerfile \
+              pyproject.toml \
+              poetry.lock \
+              config/ \
+              materials/ \
+              users/ \
+              manage.py
+          
+          scp -i ~/.ssh/id_ed25519 \
+              -o StrictHostKeyChecking=no \
+              deploy.tar.gz \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
+          
+          ssh -i ~/.ssh/id_ed25519 \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd /drf-project
+          tar -xzf deploy.tar.gz
+          rm deploy.tar.gz
+          EOF
+
+      - name: Deploy application
         run: |
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
-              -o BatchMode=yes \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          set -e
-          sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
-          sudo docker stop myapp || true
-          sudo docker rm myapp || true
-          sudo docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          cd /drf-project
+          echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
+          docker-compose down
+          docker-compose up -d --build
+          docker-compose ps
           EOF

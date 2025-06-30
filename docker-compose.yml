@@ -5,9 +5,9 @@ services:
       dockerfile: Dockerfile
     command: >
       bash -c "while ! nc -z db 5432; do sleep 1; done
-      && poetry run python manage.py collectstatic --noinput \
-      && poetry run python manage.py migrate \
-      && poetry run python manage.py csu || true\
+      && poetry run python manage.py migrate
+      && poetry run python manage.py collectstatic --noinput
+      && poetry run python manage.py csu --skip-existing || true
       && poetry run gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
@@ -32,11 +32,18 @@ services:
   nginx:
     build:
       context: ./nginx
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/ect/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - static-volume:/code/staticfiles
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     depends_on:
       web:
         condition: service_healthy
@@ -48,11 +55,11 @@ services:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -60,7 +67,7 @@ services:
   redis:
     image: redis:latest
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       interval: 10s
