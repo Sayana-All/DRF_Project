@@ -13,7 +13,7 @@ services:
       - .:/code
       - static-volume:/code/staticfiles
     ports:
-      - "8008:8000"
+      - "8000:8000"
     env_file:
       - .env
     environment:
