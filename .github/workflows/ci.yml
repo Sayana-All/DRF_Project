@@ -162,6 +162,7 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sed -i 's/\/ect\/nginx/\/etc\/nginx/g' /drf-project/nginx/nginx.conf
           docker run --rm -v /drf-project/nginx/nginx.conf:/etc/nginx/nginx.conf nginx nginx -t
           EOF
 

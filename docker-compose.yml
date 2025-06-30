@@ -38,6 +38,11 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - static-volume:/code/staticfiles
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
       web:
         condition: service_healthy
