@@ -131,29 +131,33 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Verify files
-        run: |
-          ls -la
-          [ -f docker-compose.yml ] || { echo "Error: docker-compose.yml not found!"; exit 1; }
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} 2>/dev/null > ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
+      - name: Prepare remote directory
         run: |
-          scp -o StrictHostKeyChecking=no \
-              docker-compose.yml \
-              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
-
           ssh -i ~/.ssh/id_ed25519 \
-              -o StrictHostKeyChecking=no \
-              -o BatchMode=yes \
-              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \
+            "sudo mkdir -p /drf-project && sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /drf-project"
+
+      - name: Deploy files
+        run: |
+          scp -i ~/.ssh/id_ed25519 \
+            -o StrictHostKeyChecking=no \
+            docker-compose.yml \
+            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
+
+      - name: Run deployment
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /drf-project
           echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
           docker-compose down
