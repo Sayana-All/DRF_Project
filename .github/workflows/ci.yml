@@ -162,7 +162,7 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          sed -i 's/\/ect\/nginx/\/etc\/nginx/g' /drf-project/nginx/nginx.conf
+          docker run --rm -v /drf-project/nginx/nginx.conf:/etc/nginx/nginx.conf nginx nginx -t
           EOF
 
       - name: Deploy application
@@ -173,5 +173,10 @@ jobs:
           cd /drf-project
           echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
           docker-compose down
+          docker-compose up -d db redis
+          while ! docker-compose exec db pg_isready -U postgres; do
+            sleep 1
+          done
           docker-compose up -d --build
-            EOF
+          docker-compose ps
+          EOF
