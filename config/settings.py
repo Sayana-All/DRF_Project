@@ -78,15 +78,15 @@ REST_FRAMEWORK = {
 }
 
 # Database
-if os.getenv('GITHUB_ACTIONS') == 'true':
+if os.getenv("GITHUB_ACTIONS") == "true":
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'test_db',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
-            'HOST': 'localhost',
-            'PORT': '5432',
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "test_db",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
         }
     }
 elif TESTING:
