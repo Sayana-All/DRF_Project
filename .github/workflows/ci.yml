@@ -139,28 +139,31 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Prepare remote directory
+      - name: Prepare remote directory structure
         run: |
           ssh -i ~/.ssh/id_ed25519 \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \
-            "sudo mkdir -p /drf-project && sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /drf-project"
+             -o StrictHostKeyChecking=no \
+             ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sudo mkdir -p /drf-project/nginx
+          sudo chown -R $USER:$USER /drf-project
+          EOF
 
-      - name: Deploy files
+      - name: Upload all necessary files
         run: |
           scp -i ~/.ssh/id_ed25519 \
-            -o StrictHostKeyChecking=no \
-            docker-compose.yml \
-            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
+              -o StrictHostKeyChecking=no \
+              -r \
+              docker-compose.yml \
+              nginx/ \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
 
-      - name: Run deployment
+      - name: Deploy application
         run: |
           ssh -i ~/.ssh/id_ed25519 \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /drf-project
           echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
-          docker-compose down
-          docker-compose pull
+          docker build -t nginx -f nginx/Dockerfile nginx/
           docker-compose up -d --build
           EOF
