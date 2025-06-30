@@ -142,28 +142,37 @@ jobs:
       - name: Prepare remote directory
         run: |
           ssh -i ~/.ssh/id_ed25519 \
-              -o StrictHostKeyChecking=no \
-              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+           -o StrictHostKeyChecking=no \
+           ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           sudo mkdir -p /drf-project
           sudo chown -R $USER:$USER /drf-project
           mkdir -p /drf-project/nginx
           EOF
 
-      - name: Upload all project files
+      - name: Upload only necessary files
         run: |
+          tar -czf deploy.tar.gz \
+              docker-compose.yml \
+              nginx/ \
+              Dockerfile \
+              pyproject.toml \
+              poetry.lock \
+              config/ \
+              materials/ \
+              users/ \
+              manage.py
+          
           scp -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
-              -r \
-              . \
+              deploy.tar.gz \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
-
-      - name: Fix nginx path in docker-compose
-        run: |
+          
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          sed -i 's/\/ect\/nginx/\/etc\/nginx/g' /drf-project/nginx/nginx.conf
-          docker run --rm -v /drf-project/nginx/nginx.conf:/etc/nginx/nginx.conf nginx nginx -t
+          cd /drf-project
+          tar -xzf deploy.tar.gz
+          rm deploy.tar.gz
           EOF
 
       - name: Deploy application
@@ -174,10 +183,6 @@ jobs:
           cd /drf-project
           echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
           docker-compose down
-          docker-compose up -d db redis
-          while ! docker-compose exec db pg_isready -U postgres; do
-            sleep 1
-          done
           docker-compose up -d --build
           docker-compose ps
           EOF
