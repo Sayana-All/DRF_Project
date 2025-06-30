@@ -136,11 +136,19 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_IP }} 2>/dev/null > ~/.ssh/known_hosts
 
-      - name: Deploy to Server
+      - name: Create deployment directory
+        run: mkdir -p deploy
+
+      - name: Prepare deployment files
+        run: |
+          cp docker-compose.yml deploy/
+          cp -r nginx deploy/
+
+      - name: Deploy to server
         run: |
           scp -o StrictHostKeyChecking=no \
-              docker-compose.yml \
-              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/docker-compose.yml
+              -r deploy/* \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/drf-project/
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -o BatchMode=yes \
