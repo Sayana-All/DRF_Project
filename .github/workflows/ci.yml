@@ -139,23 +139,31 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Prepare remote directory structure
+      - name: Prepare remote directory
         run: |
           ssh -i ~/.ssh/id_ed25519 \
-             -o StrictHostKeyChecking=no \
-             ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          sudo mkdir -p /drf-project/nginx
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sudo mkdir -p /drf-project
           sudo chown -R $USER:$USER /drf-project
+          mkdir -p /drf-project/nginx
           EOF
 
-      - name: Upload all necessary files
+      - name: Upload all project files
         run: |
           scp -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -r \
-              docker-compose.yml \
-              nginx/ \
+              . \
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
+
+      - name: Fix nginx path in docker-compose
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sed -i 's/\/ect\/nginx/\/etc\/nginx/g' /drf-project/nginx/nginx.conf
+          EOF
 
       - name: Deploy application
         run: |
@@ -164,6 +172,6 @@ jobs:
               ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /drf-project
           echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
-          docker build -t nginx -f nginx/Dockerfile nginx/
+          docker-compose down
           docker-compose up -d --build
-          EOF
+            EOF
