@@ -128,10 +128,13 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
       - name: Verify files
         run: |
-          ls -la  # Покажет список файлов для отладки
-          [ -f docker-compose.yml ] || exit 1  # Явная проверка файла
+          ls -la
+          [ -f docker-compose.yml ] || { echo "Error: docker-compose.yml not found!"; exit 1; }
 
       - name: Setup SSH
         run: |
@@ -145,7 +148,8 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no \
               docker-compose.yml \
-              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/drf-project/
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/drf-project/
+
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -o BatchMode=yes \
