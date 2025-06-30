@@ -112,11 +112,19 @@ docker system prune -a`
 
 ###### Шаги для локального запуска проекта
 1. Клонировать проект из удаленного репозитория:
-`git clone https://github.com/Sayana-All/DRF_Project.git`
-2. Перейти в рабочую директорию проекта (если нужно):
-`cd DRF_Project`
+```bash
+git clone https://github.com/ваш-username/DRF_Project.git
+cd DRF_Project
+```
+2. Создать файл **.env** на основе **.env.sample**:
+```bash
+cp .env.sample .env
+```
+Заполните необходимые переменные (DJANGO_SECRET_KEY, DATABASE_HOST и прочие).
 3. Произвести сборку и запуск контейнеров проекта:
-`docker-compose up -d`
+```bash
+docker-compose up -d --build
+```
 
 ###### Настройка сервера для развертывания и удаленного запуска контейнеров проекта
 1. Подключиться к виртуальному серверу Yandex Cloud:
@@ -130,6 +138,7 @@ sudo apt upgrade
 ```
 sudo apt install -y docker.io docker-compose
 sudo usermod -aG docker $USER
+newgrp docker
 ```
 4. Настройка фаервола:
     - Проверьте состояние фаервола с помощью команды:
@@ -165,6 +174,7 @@ sudo usermod -aG docker $USER
     * **DJANGO_SECRET_KEY** - секретный ключ Django
     * **DOCKER_HUB_USERNAME** - ваш логин в Docker Hub
     * **DOCKER_HUB_ACCESS_TOKEN** - токен для пользовательского доступа для работы с Docker
+3. Так как в workflows _ci.yml_ настроен автоматический деплой, то после работы GitHub Actions проект автоматически перебросится и развернется на сервере.
 
 
 ## Документация
